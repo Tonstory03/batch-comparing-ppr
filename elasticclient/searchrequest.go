@@ -7,16 +7,19 @@ import (
 	"strings"
 
 	"github.com/elastic/go-elasticsearch/v7"
+	"github.com/elastic/go-elasticsearch/v7/esapi"
 	"th.truecorp.it.dsm.batch/batch-comparing-ppr/utils"
 )
 
-func Search(es *elasticsearch.Client, body map[string]interface{}) (*ResultSearch, error) {
+func search(es *elasticsearch.Client, params []func(*esapi.SearchRequest)) (*ResultSearch, error) {
 
 	var result ResultSearch
-	var buffer bytes.Buffer
 
-	json.NewEncoder(&buffer).Encode(body)
-	response, err := es.Search(es.Search.WithBody(&buffer))
+	// params := []func(*esapi.SearchRequest){es.Search.WithBody(&buffer), es.Search.WithIndex(*indexName)}
+
+	// json.NewEncoder(&buffer).Encode(body)
+
+	response, err := es.Search(params...)
 
 	if err != nil {
 		return nil, err
@@ -25,6 +28,32 @@ func Search(es *elasticsearch.Client, body map[string]interface{}) (*ResultSearc
 	json.NewDecoder(response.Body).Decode(&result)
 
 	return &result, nil
+}
+
+func SearchBodyMap(es *elasticsearch.Client, body map[string]interface{}, indexName *string) (*ResultSearch, error) {
+
+	var buffer bytes.Buffer
+
+	json.NewEncoder(&buffer).Encode(body)
+
+	params := []func(*esapi.SearchRequest){es.Search.WithBody(&buffer)}
+
+	if indexName != nil {
+		params = append(params, es.Search.WithIndex(*indexName))
+	}
+
+	return search(es, params)
+}
+
+func SearchBodyStr(es *elasticsearch.Client, body string, indexName *string) (*ResultSearch, error) {
+
+	params := []func(*esapi.SearchRequest){es.Search.WithBody(bytes.NewBuffer([]byte(body)))}
+
+	if indexName != nil {
+		params = append(params, es.Search.WithIndex(*indexName))
+	}
+
+	return search(es, params)
 }
 
 // func getSearchBodyProcessFailure(env, startTime, endTime string) (map[string]interface{}, error) {

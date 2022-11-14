@@ -10,7 +10,6 @@ import (
 
 func NewClient() (*elasticsearch.Client, error) {
 	elasticConfig := config.GetElasticConfig()
-
 	cfg := elasticsearch.Config{
 		Addresses: []string{
 			elasticConfig.Endpoint,
