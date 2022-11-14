@@ -1,0 +1,17 @@
+application:
+  name: batch-comparing-ppr
+  profile: local
+
+server:
+  port: 8080
+
+cronjob: 
+  - name: "retry-process-kafka"
+    expression: "0,30 * * * *"
+    enable: false
+
+elastic:
+  endpoint: https://vip-itests.true.th:9200
+  enableAuth: true
+  username: int-dev
+  password: int-dev
